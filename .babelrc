@@ -1,0 +1,16 @@
+{
+  "plugins": [
+    ["transform-object-rest-spread", { "useBuiltIns": true }]
+  ],
+  "presets": [
+    ["env", {
+      "targets": {
+        "browsers": ["last 2 Firefox versions", "last 2 Chrome versions"]
+      },
+      "exclude": [],
+      "useBuiltins": true,
+      "debug": true,
+      "modules": false
+    }]
+  ]
+}

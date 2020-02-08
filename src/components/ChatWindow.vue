@@ -1,0 +1,108 @@
+<template>
+    <div>
+        <div class="chat-container">
+            <section ref="chatArea" class="chat-area">
+                <div v-for="piece in dialogueHistory" class="chat-message content" :class="{ 'chat-message-user': piece.writer === 'user', 'chat-message-daphne': piece.writer === 'daphne' }">
+                    <component v-for="(response, index) in piece['visual_message']" v-bind:is="responseTypes[piece['visual_message_type'][index]]" :response="response" :key="index"></component>
+                </div>
+                <img src="assets/img/loader.svg" style="display: block; margin: auto;" height="64" width="64" v-if="isLoading" alt="Loading spinner">
+            </section>
+
+            <QuestionBar class="sticky-textbox"></QuestionBar>
+        </div>
+    </div>
+</template>
+
+<script>
+    import * as _ from 'lodash-es';
+    import QuestionBar from "./QuestionBar";
+    import TextResponse from './TextResponse';
+    import ListResponse from './ListResponse';
+    import {mapState} from "vuex";
+    import { mapGetters } from 'vuex';
+
+    let loaderImage = require('../images/loader.svg');
+    export default {
+        name: "ChatWindow",
+        components: {
+            TextResponse,
+            ListResponse,
+            QuestionBar
+        },
+
+        data() {
+            return {
+                responseTypes: {
+                    text: 'TextResponse',
+                    list: 'ListResponse',
+
+                }
+            }
+        },
+
+        computed:{
+
+            ...mapState({
+                dialogueHistory: state => state.daphne.dialogueHistory,
+                isLoading: state => state.daphne.isLoading,
+            }),
+        },
+
+        methods: {
+            scrollToBottom: function() {
+                console.log("Scrolling to bottom");
+                let container = this.$el.querySelector(".chat-area");
+                container.scrollTop = container.scrollHeight;
+            }
+        },
+        watch: {
+            dialogueHistory: function(val, oldVal) {
+                this.$nextTick(() => {
+                    this.scrollToBottom();
+                });
+                if (this.speakOut) {
+                    if (val["writer"] === "daphne") {
+                        responsiveVoice.speak(val['voice_message']);
+                    }
+                }
+            },
+            isLoading: function(val, oldVal) {
+                if (val === true) {
+                    _.delay(() => { this.scrollToBottom(); }, 500);
+                }
+            },
+        }
+    }
+</script>
+
+<style lang="scss">
+    @import "../../node_modules/bulma/sass/utilities/initial-variables";
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: 600px;
+        background: white;
+        width: inherit;
+    }
+    .chat-area {
+        width: 100%;
+        padding: 1em;
+        overflow: auto;
+        flex-grow: 1;
+    }
+    .chat-message {
+        width: 95%;
+        border-radius: 10px;
+        padding: .8em;
+        margin-bottom: .8em;
+    }
+    .chat-message-daphne {
+        background: $white-ter;
+    }
+
+    .sticky-textbox {
+        padding: 1em;
+
+    }
+
+</style>
